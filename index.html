@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pawar Family Credit Dashboard</title>
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Pawar Family Dashboard&quot;,&quot;short_name&quot;:&quot;PFD&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0f172a&quot;,&quot;theme_color&quot;:&quot;#1e293b&quot;}">
+<meta name="theme-color" content="#1e293b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pawar Dashboard">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg-base: #0f172a;
+    --bg-card: #1e293b;
+    --bg-card2: #253047;
+    --bg-input: #0f172a;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.15);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --accent-amber: #f59e0b;
+    --accent-orange: #f97316;
+    --grade-a: #10b981;
+    --grade-b: #f59e0b;
+    --grade-c: #f97316;
+    --grade-d: #ef4444;
+    --font: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-xs: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  /* LAYOUT */
+  #app { min-height: 100vh; min-height: 100dvh; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+  .topbar-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+  /* BOTTOM NAV (mobile) */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px;
+    gap: 3px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    transition: color 0.15s;
+  }
+  .bottom-nav-item.active { color: var(--accent-blue); }
+  .bottom-nav-icon { font-size: 18px; line-height: 1; }
+
+  /* DESKTOP TABS */
+  .desktop-tabs {
+    display: none;
+    gap: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+  .desktop-tab {
+    padding: 6px 16px;
+    border-radius: var(--radius-xs);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border: none;
+    background: transparent;
+    transition: all 0.15s;
+  }
+  .desktop-tab.active {
+    background: var(--bg-card2);
+    color: var(--text-primary);
+  }
+
+  /* PAGE CONTENT */
+  .page-content {
+    padding: 16px 16px 80px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-body { padding: 16px; }
+  .card-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    border-radius: var(--radius);
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .stat-icon {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-xs);
+    background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .stat-label { font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 2px; }
+  .stat-value { font-size: 18px; font-weight: 700; color: #fff; line-height: 1; }
+
+  /* MEMBER CARDS */
+  .member-list { display: flex; flex-direction: column; gap: 8px; }
+  .member-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .member-card:active { opacity: 0.85; }
+  .member-card.selected { border-color: var(--accent-blue); background: rgba(59,130,246,0.05); }
+  .member-avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    flex-shrink: 0;
+    color: #fff;
+  }
+  .member-info { flex: 1; min-width: 0; }
+  .member-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .member-role { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .member-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .member-score { font-size: 18px; font-weight: 700; }
+  .grade-badge {
+    font-size: 10px; font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  /* PROGRESS BAR */
+  .progress { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+  /* SEARCH */
+  .search-bar {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .search-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 14px; pointer-events: none;
+  }
+  .inp {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px 10px 36px;
+    font-size: 14px;
+    color: var(--text-primary);
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  .inp:focus { border-color: var(--accent-blue); }
+  .inp::placeholder { color: var(--text-muted); }
+  .inp-plain { padding-left: 12px; }
+  select.inp { cursor: pointer; }
+  textarea.inp { resize: vertical; min-height: 90px; }
+
+  /* FILTER CHIPS */
+  .filter-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+  .filter-chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px; font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .chip.active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #fff;
+  }
+
+  /* REPORT PANEL */
+  .report-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .report-hero {
+    padding: 16px;
+    background: linear-gradient(135deg, #1e3a5f, #0f2744);
+    border-bottom: 1px solid var(--border);
+  }
+  .report-name { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+  .report-role { font-size: 12px; color: #94a3b8; }
+  .report-score-row { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 12px; }
+  .report-score { font-size: 36px; font-weight: 800; line-height: 1; }
+  .report-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .report-section:last-child { border-bottom: none; }
+  .section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+
+  /* LOG ITEMS */
+  .log-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+  }
+  .log-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .log-action { font-size: 13px; font-weight: 500; }
+  .log-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .log-remark { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+  .log-pts { font-size: 14px; font-weight: 700; flex-shrink: 0; }
+
+  /* MONTHLY */
+  .monthly-row {
+    display: flex; justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .monthly-row:last-child { border-bottom: none; }
+
+  /* ACTIONS TAB */
+  .action-form { display: flex; flex-direction: column; gap: 12px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+
+  /* NYAY GRID */
+  .nyay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .nyay-item {
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    border: 1px solid;
+  }
+  .nyay-grade { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .nyay-pts { font-size: 20px; font-weight: 700; }
+  .nyay-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* BUTTONS */
+  .btn {
+    cursor: pointer;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 20px;
+    width: 100%;
+    transition: opacity 0.15s, transform 0.1s;
+    -webkit-appearance: none;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent-blue); color: #fff; }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-danger { background: #7f1d1d; color: #fff; }
+  .btn-sm {
+    padding: 7px 14px;
+    font-size: 13px;
+    width: auto;
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    border: none;
+    font-family: var(--font);
+    font-weight: 500;
+    color: #fff;
+  }
+  .btn-logout { background: #334155; }
+  .btn-reset { background: #7f1d1d; }
+  .btn-show { background: #334155; }
+
+  /* BADGE */
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-role { background: rgba(59,130,246,0.15); color: #93c5fd; }
+
+  /* LOGIN SCREEN */
+  .login-screen {
+    min-height: 100vh; min-height: 100dvh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 16px;
+    background: var(--bg-base);
+  }
+  .login-card {
+    width: 100%; max-width: 400px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+  }
+  .login-logo { text-align: center; margin-bottom: 24px; }
+  .login-logo-icon {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, #1e3a5f, #3b82f6);
+    border-radius: 16px;
+    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .login-title { font-size: 20px; font-weight: 700; }
+  .login-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .login-field { margin-bottom: 14px; }
+  .login-error { color: #fca5a5; font-size: 13px; margin-bottom: 10px; }
+  .cred-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .cred-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+  .cred-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .cred-row:last-child { border-bottom: none; }
+  .cred-name { font-size: 12px; color: var(--text-muted); }
+  .cred-val { font-size: 11px; font-family: var(--mono); color: var(--text-primary); }
+  .quick-logins { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .quick-btn {
+    padding: 8px 10px;
+    border-radius: var(--radius-xs);
+    font-size: 12px; font-weight: 500;
+    cursor: pointer; border: none;
+    font-family: var(--font);
+    color: #fff;
+    text-align: center;
+  }
+
+  /* DESKTOP LAYOUT */
+  @media (min-width: 768px) {
+    .bottom-nav { display: none; }
+    .desktop-tabs { display: flex; }
+    .page-content { padding: 20px 24px 24px; }
+    .stats-row { grid-template-columns: repeat(4, 1fr); }
+    .desktop-grid { display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start; }
+    .member-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .report-panel { position: sticky; top: 76px; }
+    .quick-logins { grid-template-columns: repeat(3, 1fr); }
+    .login-card { padding: 36px 32px; }
+  }
+
+  @media (min-width: 1024px) {
+    .member-list { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.25s ease; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
+  }
+
+  /* RIGHTS TAG */
+  .rights-tag {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const MEMBERS = [
+  {id:1,name:"VKP Baba",role:"Guiding Authority",score:80,category:"Senior"},
+  {id:2,name:"GVP Aai",role:"Cultural & Dispute Resolution",score:80,category:"Senior"},
+  {id:3,name:"Abhijeet",role:"CEO",score:80,category:"Core"},
+  {id:4,name:"Bhagyashree",role:"COO / Execution",score:80,category:"Core"},
+  {id:5,name:"Dipali",role:"CFO / Accounts",score:80,category:"Core"},
+  {id:6,name:"Ruturaj",role:"Civil / Execution",score:80,category:"Core"},
+  {id:7,name:"Shashikala Tai",role:"Food & Hospitality",score:80,category:"Core"},
+  {id:8,name:"Aba Salunkhe",role:"Family Member",score:80,category:"Extended Core"},
+  {id:9,name:"Chakuli",role:"Education / Support",score:80,category:"Core"},
+  {id:10,name:"Suraj Bhagat",role:"Family Member",score:80,category:"Extended Core"},
+  {id:11,name:"Viraj",role:"Next Generation",score:80,category:"Next Gen"},
+  {id:12,name:"Kartik",role:"Next Generation",score:80,category:"Next Gen"},
+  {id:13,name:"Dnyaneshwari",role:"Child",score:80,category:"Children"},
+  {id:14,name:"Krishna",role:"Child",score:80,category:"Children"},
+  {id:15,name:"Advait",role:"Child",score:80,category:"Children"},
+  {id:16,name:"Advika",role:"Child",score:80,category:"Children"},
+];
+
+const ACTIONS = [
+  {label:"Good Work",points:10,type:"positive"},
+  {label:"On Time Submission",points:8,type:"positive"},
+  {label:"Rule Followed",points:5,type:"positive"},
+  {label:"Family Contribution",points:7,type:"positive"},
+  {label:"P&L Submitted On Time",points:10,type:"positive"},
+  {label:"Delay",points:-10,type:"negative"},
+  {label:"Rule Break",points:-15,type:"negative"},
+  {label:"Lie / Dishonesty",points:-20,type:"negative"},
+  {label:"Nyay Grade A",points:-5,type:"nyay"},
+  {label:"Nyay Grade B",points:-10,type:"nyay"},
+  {label:"Nyay Grade C",points:-20,type:"nyay"},
+  {label:"Nyay Grade D",points:-50,type:"nyay"},
+];
+
+const USERS = [
+  {username:"admin",password:"admin123",role:"admin",displayName:"System Admin",memberId:null},
+  {username:"dipali",password:"dipali123",role:"admin",displayName:"Dipali",memberId:5},
+  {username:"vkpbaba",password:"baba123",role:"member",displayName:"VKP Baba",memberId:1},
+  {username:"gvpaai",password:"aai123",role:"member",displayName:"GVP Aai",memberId:2},
+  {username:"abhijeet",password:"abhi123",role:"member",displayName:"Abhijeet",memberId:3},
+  {username:"bhagyashree",password:"bhagy123",role:"member",displayName:"Bhagyashree",memberId:4},
+  {username:"ruturaj",password:"rutu123",role:"member",displayName:"Ruturaj",memberId:6},
+  {username:"shashikala",password:"shashi123",role:"member",displayName:"Shashikala Tai",memberId:7},
+  {username:"abasalunkhe",password:"aba123",role:"member",displayName:"Aba Salunkhe",memberId:8},
+  {username:"chakuli",password:"chakuli123",role:"member",displayName:"Chakuli",memberId:9},
+  {username:"surajbhagat",password:"suraj123",role:"member",displayName:"Suraj Bhagat",memberId:10},
+  {username:"viraj",password:"viraj123",role:"member",displayName:"Viraj",memberId:11},
+  {username:"kartik",password:"kartik123",role:"member",displayName:"Kartik",memberId:12},
+  {username:"dnyaneshwari",password:"dnya123",role:"member",displayName:"Dnyaneshwari",memberId:13},
+  {username:"krishna",password:"krishna123",role:"member",displayName:"Krishna",memberId:14},
+  {username:"advait",password:"advait123",role:"member",displayName:"Advait",memberId:15},
+  {username:"advika",password:"advika123",role:"member",displayName:"Advika",memberId:16},
+];
+
+const AVATAR_COLORS = [
+  '#1e3a5f','#064e3b','#312e81','#7f1d1d','#713f12',
+  '#134e4a','#4c1d95','#831843','#1c3d5a','#065f46',
+  '#1e40af','#b45309','#0f766e','#7c3aed','#be185d','#0369a1'
+];
+
+function getGrade(s) {
+  if (s >= 80) return {grade:'A', label:'Leader', color:'#10b981', bg:'rgba(16,185,129,0.15)', textColor:'#6ee7b7'};
+  if (s >= 60) return {grade:'B', label:'Trusted', color:'#f59e0b', bg:'rgba(245,158,11,0.15)', textColor:'#fcd34d'};
+  if (s >= 40) return {grade:'C', label:'Improvement', color:'#f97316', bg:'rgba(249,115,22,0.15)', textColor:'#fdba74'};
+  return {grade:'D', label:'Restricted', color:'#ef4444', bg:'rgba(239,68,68,0.15)', textColor:'#fca5a5'};
+}
+
+function getRights(s) {
+  if (s >= 80) return 'High decision power + leadership eligibility';
+  if (s >= 60) return 'Normal role + limited decisions';
+  if (s >= 40) return 'Supervision required';
+  return 'Restricted rights + close monitoring';
+}
+
+function initials(name) {
+  return name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+
+// STATE
+let S = {
+  members: JSON.parse(JSON.stringify(MEMBERS)),
+  logs: [],
+  auth: null,
+  tab: 'dashboard',
+  activeMemberId: 1,
+  selMember: '1',
+  selAction: 'Good Work',
+  remark: '',
+  search: '',
+  filterCat: 'all',
+  showAllCreds: false,
+  loginUn: '',
+  loginPw: '',
+  loginErr: '',
+};
+
+function load() {
+  try { const d = JSON.parse(localStorage.getItem('pfd-v3')||'null'); if(d) { if(d.members) S.members=d.members; if(d.logs) S.logs=d.logs; } } catch(e){}
+  try { const a = JSON.parse(localStorage.getItem('pfd-auth3')||'null'); if(a) S.auth=a; } catch(e){}
+}
+function save() {
+  try { localStorage.setItem('pfd-v3', JSON.stringify({members:S.members,logs:S.logs})); } catch(e){}
+  try { if(S.auth) localStorage.setItem('pfd-auth3',JSON.stringify(S.auth)); else localStorage.removeItem('pfd-auth3'); } catch(e){}
+}
+
+load();
+
+function login(un, pw) {
+  const u = USERS.find(x => x.username.toLowerCase()===un.trim().toLowerCase() && x.password===pw.trim());
+  if (!u) { S.loginErr='Invalid username or password'; render(); return; }
+  S.auth = {username:u.username,role:u.role,displayName:u.displayName,memberId:u.memberId};
+  S.loginErr='';
+  if (u.role==='member'&&u.memberId) { S.activeMemberId=u.memberId; S.selMember=String(u.memberId); }
+  save(); render();
+}
+
+function logout() { S.auth=null; save(); render(); }
+
+function applyAction() {
+  if (!S.auth||S.auth.role!=='admin') return;
+  const action = ACTIONS.find(a=>a.label===S.selAction); if(!action) return;
+  const mid = Number(S.selMember);
+  const mi = S.members.findIndex(m=>m.id===mid); if(mi<0) return;
+  const member = S.members[mi];
+  S.members[mi] = {...member, score: Math.max(0,Math.min(100, member.score+action.points))};
+  const now = new Date();
+  S.logs.unshift({
+    id:Date.now(), memberId:mid, memberName:member.name,
+    action:action.label, points:action.points,
+    remark:S.remark||'No remark',
+    time:now.toLocaleString(),
+    month:now.toLocaleString('default',{month:'long',year:'numeric'})
+  });
+  S.remark=''; S.activeMemberId=mid; save(); render();
+}
+
+function resetAll() {
+  if (!confirm('Reset all scores and logs to default?')) return;
+  S.members=JSON.parse(JSON.stringify(MEMBERS)); S.logs=[];
+  S.activeMemberId=1; S.selMember='1'; S.remark=''; S.search=''; S.filterCat='all';
+  save(); render();
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify({members:S.members,logs:S.logs,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='pawar-family-dashboard.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// RENDER
+function renderLogin() {
+  const admins = USERS.filter(u=>u.role==='admin');
+  const members = USERS.filter(u=>u.role==='member');
+  const memberRows = S.showAllCreds ? members.map(u=>`
+    <div class="cred-row">
+      <span class="cred-name">${u.displayName}</span>
+      <span class="cred-val">${u.username} / ${u.password}</span>
+    </div>`).join('') : '';
+
+  document.getElementById('app').innerHTML = `
+  <div class="login-screen">
+    <div class="login-card fade-in">
+      <div class="login-logo">
+        <div class="login-logo-icon">👑</div>
+        <div class="login-title">Family Dashboard</div>
+        <div class="login-sub">Pawar Family · Credit System</div>
+      </div>
+
+      <div class="login-field">
+        <div class="form-label">Username</div>
+        <input class="inp inp-plain" id="l-un" placeholder="Enter username" value="${S.loginUn}" autocapitalize="none" autocorrect="off">
+      </div>
+      <div class="login-field">
+        <div class="form-label">Password</div>
+        <input class="inp inp-plain" type="password" id="l-pw" placeholder="Enter password" value="${S.loginPw}">
+      </div>
+      ${S.loginErr ? `<div class="login-error">${S.loginErr}</div>` : ''}
+      <button class="btn btn-primary" onclick="login(document.getElementById('l-un').value,document.getElementById('l-pw').value)" style="margin-bottom:20px">Login</button>
+
+      <div class="cred-box">
+        <div class="cred-title">Admin accounts</div>
+        ${admins.map(u=>`<div class="cred-row"><span class="cred-name">${u.displayName}</span><span class="cred-val">${u.username} / ${u.password}</span></div>`).join('')}
+      </div>
+
+      <div class="cred-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;${S.showAllCreds?'margin-bottom:8px':''}">
+          <div class="cred-title" style="margin:0">Member accounts (${members.length})</div>
+          <button class="btn-sm btn-show" onclick="S.showAllCreds=!S.showAllCreds;renderLogin()">${S.showAllCreds?'Hide':'Show all'}</button>
+        </div>
+        ${memberRows}
+      </div>
+
+      <div class="form-label" style="margin-bottom:8px">Quick login</div>
+      <div class="quick-logins">
+        <button class="quick-btn" style="background:#1e3a5f" onclick="login('admin','admin123')">⚙ Admin</button>
+        <button class="quick-btn" style="background:#0f766e" onclick="login('dipali','dipali123')">Dipali</button>
+        <button class="quick-btn" style="background:#312e81" onclick="login('abhijeet','abhi123')">Abhijeet</button>
+        <button class="quick-btn" style="background:#064e3b" onclick="login('ruturaj','rutu123')">Ruturaj</button>
+        <button class="quick-btn" style="background:#4c1d95" onclick="login('vkpbaba','baba123')">VKP Baba</button>
+        <button class="quick-btn" style="background:#7f1d1d" onclick="login('bhagyashree','bhagy123')">Bhagyashree</button>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('l-pw').addEventListener('keydown', e => {
+    if (e.key==='Enter') login(document.getElementById('l-un').value, document.getElementById('l-pw').value);
+  });
+}
+
+function renderApp() {
+  const au = S.auth;
+  const isAdmin = au.role==='admin';
+  const cats = ['all',...new Set(S.members.map(m=>m.category))];
+
+  let visible = S.members;
+  if (!isAdmin && au.memberId) {
+    visible = S.members.filter(m=>m.id===au.memberId);
+  } else {
+    const q = S.search.toLowerCase();
+    visible = S.members.filter(m=>{
+      const ms = m.name.toLowerCase().includes(q)||m.role.toLowerCase().includes(q);
+      const mf = S.filterCat==='all'||m.category===S.filterCat;
+      return ms&&mf;
+    });
+  }
+
+  const activeMember = (!isAdmin&&au.memberId)
+    ? S.members.find(m=>m.id===au.memberId)||S.members[0]
+    : S.members.find(m=>m.id===S.activeMemberId)||S.members[0];
+
+  const activeLogs = S.logs.filter(l=>l.memberId===activeMember.id);
+  const monthly = activeLogs.reduce((acc,l)=>{acc[l.month]=(acc[l.month]||0)+l.points;return acc},{});
+
+  const totalAvg = Math.round(S.members.reduce((s,m)=>s+m.score,0)/Math.max(1,S.members.length));
+  const top = [...S.members].sort((a,b)=>b.score-a.score)[0];
+  const restricted = S.members.filter(m=>m.score<40).length;
+  const ag = getGrade(activeMember.score);
+  const ai = S.members.findIndex(m=>m.id===activeMember.id);
+
+  // STATS
+  const statsHTML = `<div class="stats-row">
+    <div class="stat-card" style="background:linear-gradient(135deg,#1e3a5f,#334155)">
+      <div class="stat-icon">👥</div>
+      <div><div class="stat-label">Members</div><div class="stat-value">${S.members.length}</div></div>
+    </div>
+    <div class="stat-card" style="background:linear-gradient(135deg,#064e3b,#0f766e)">
+      <div class="stat-icon">📊</div>
+      <div><div class="stat-label">Avg Score</div><div class="stat-value">${totalAvg}</div></div>
+    </div>
+    <div class="stat-card" style="background:linear-gradient(135deg,#312e81,#1e40af)">
+      <div class="stat-icon">🏆</div>
+      <div><div class="stat-label">Top</div><div class="stat-value" style="font-size:14px">${top?.name||'-'}</div></div>
+    </div>
+    <div class="stat-card" style="background:linear-gradient(135deg,#7f1d1d,#9f1239)">
+      <div class="stat-icon">⚠</div>
+      <div><div class="stat-label">Restricted</div><div class="stat-value">${restricted}</div></div>
+    </div>
+  </div>`;
+
+  // MEMBER CARDS
+  const memberCardsHTML = visible.map((m,idx)=>{
+    const g = getGrade(m.score);
+    const isAct = m.id===activeMember.id;
+    const bgColor = AVATAR_COLORS[m.id % AVATAR_COLORS.length];
+    return `<div class="member-card${isAct?' selected':''}" onclick="S.activeMemberId=${m.id};render()">
+      <div class="member-avatar" style="background:${bgColor}">${initials(m.name)}</div>
+      <div class="member-info">
+        <div class="member-name">${m.name}</div>
+        <div class="member-role">${m.role}</div>
+        <div class="progress" style="margin-top:6px;width:100%">
+          <div class="progress-fill" style="width:${m.score}%;background:${g.color}"></div>
+        </div>
+      </div>
+      <div class="member-right">
+        <div class="member-score" style="color:${g.color}">${m.score}</div>
+        <div class="grade-badge" style="background:${g.bg};color:${g.textColor}">Grade ${g.grade}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // REPORT PANEL
+  const monthlyHTML = Object.entries(monthly).length === 0
+    ? `<div style="font-size:13px;color:var(--text-muted)">No records yet</div>`
+    : Object.entries(monthly).map(([mo,tot])=>`
+      <div class="monthly-row">
+        <span style="color:var(--text-secondary)">${mo}</span>
+        <span style="font-weight:600;color:${tot>=0?'#6ee7b7':'#fca5a5'}">${tot>=0?'+':''}${tot}</span>
+      </div>`).join('');
+
+  const logHTML = activeLogs.length === 0
+    ? `<div style="font-size:13px;color:var(--text-muted)">No activity yet</div>`
+    : activeLogs.slice(0,15).map(l=>`
+      <div class="log-item">
+        <div>
+          <div class="log-action">${l.action}</div>
+          <div class="log-time">${l.time}</div>
+          <div class="log-remark">${l.remark}</div>
+        </div>
+        <div class="log-pts" style="color:${l.points>=0?'#6ee7b7':'#fca5a5'}">${l.points>=0?'+':''}${l.points}</div>
+      </div>`).join('');
+
+  const reportHTML = `<div class="report-panel">
+    <div class="report-hero">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div class="member-avatar" style="background:${AVATAR_COLORS[activeMember.id%AVATAR_COLORS.length]};width:44px;height:44px">${initials(activeMember.name)}</div>
+        <div>
+          <div class="report-name">${activeMember.name}</div>
+          <div class="report-role">${activeMember.role}</div>
+        </div>
+      </div>
+      <div class="report-score-row">
+        <div>
+          <div style="font-size:11px;color:#94a3b8">Current Score</div>
+          <div class="report-score" style="color:${ag.color}">${activeMember.score}</div>
+        </div>
+        <div class="grade-badge" style="background:${ag.bg};color:${ag.textColor};font-size:13px;padding:5px 12px">Grade ${ag.grade} · ${ag.label}</div>
+      </div>
+      <div class="progress" style="margin-top:10px;background:rgba(255,255,255,0.12)">
+        <div class="progress-fill" style="width:${activeMember.score}%;background:${ag.color}"></div>
+      </div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:8px">${getRights(activeMember.score)}</div>
+    </div>
+    <div class="report-section">
+      <div class="section-title">Monthly Summary</div>
+      ${monthlyHTML}
+    </div>
+    <div class="report-section">
+      <div class="section-title">Activity Log</div>
+      <div style="max-height:240px;overflow-y:auto">${logHTML}</div>
+    </div>
+  </div>`;
+
+  // ACTIONS TAB
+  const memberOpts = S.members.map(m=>`<option value="${m.id}"${S.selMember===String(m.id)?' selected':''}>${m.name}</option>`).join('');
+  const actionOpts = ACTIONS.map(a=>`<option value="${a.label}"${S.selAction===a.label?' selected':''}>${a.label} (${a.points>0?'+':''}${a.points})</option>`).join('');
+
+  const actionsHTML = `
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-header">Score Action Panel</div>
+      <div class="card-body action-form">
+        <div>
+          <div class="form-label">Select Member</div>
+          <select class="inp inp-plain" onchange="S.selMember=this.value">${memberOpts}</select>
+        </div>
+        <div>
+          <div class="form-label">Select Action</div>
+          <select class="inp inp-plain" onchange="S.selAction=this.value">${actionOpts}</select>
+        </div>
+        <div>
+          <div class="form-label">Remark / Reason</div>
+          <textarea class="inp inp-plain" placeholder="Write note, reason, rule reference..." oninput="S.remark=this.value">${S.remark}</textarea>
+        </div>
+        <button class="btn btn-primary" onclick="applyAction()">Apply Score Update</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Nyay Sanhita Reference</div>
+      <div class="card-body">
+        <div class="nyay-grid">
+          <div class="nyay-item" style="background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.25)">
+            <div class="nyay-grade" style="color:#6ee7b7">Grade A</div>
+            <div class="nyay-pts" style="color:#10b981">-5</div>
+            <div class="nyay-desc">Minor offence</div>
+          </div>
+          <div class="nyay-item" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.25)">
+            <div class="nyay-grade" style="color:#fcd34d">Grade B</div>
+            <div class="nyay-pts" style="color:#f59e0b">-10</div>
+            <div class="nyay-desc">Moderate offence</div>
+          </div>
+          <div class="nyay-item" style="background:rgba(249,115,22,0.08);border-color:rgba(249,115,22,0.25)">
+            <div class="nyay-grade" style="color:#fdba74">Grade C</div>
+            <div class="nyay-pts" style="color:#f97316">-20</div>
+            <div class="nyay-desc">Serious offence</div>
+          </div>
+          <div class="nyay-item" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.25)">
+            <div class="nyay-grade" style="color:#fca5a5">Grade D</div>
+            <div class="nyay-pts" style="color:#ef4444">-50</div>
+            <div class="nyay-desc">Critical offence</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.9;background:rgba(255,255,255,0.04);border-radius:8px;padding:12px">
+          P&amp;L on time → +10 &nbsp;|&nbsp; Good work → +7 to +10<br>
+          Delay → -10 &nbsp;|&nbsp; Lie / dishonesty → -20<br>
+          Nyay serious → -20 or -50
+        </div>
+      </div>
+    </div>`;
+
+  // LOGS TAB
+  const allLogsHTML = S.logs.length === 0
+    ? `<div class="empty-state">No activity yet.<br>Apply score updates from the Actions tab.</div>`
+    : S.logs.map(l=>`
+      <div class="log-item">
+        <div>
+          <div style="font-size:13px;font-weight:600">${l.memberName}</div>
+          <div class="log-action" style="font-weight:400">${l.action}</div>
+          <div class="log-time">${l.time}</div>
+          <div class="log-remark">${l.remark}</div>
+        </div>
+        <div class="log-pts" style="color:${l.points>=0?'#6ee7b7':'#fca5a5'}">${l.points>=0?'+':''}${l.points}</div>
+      </div>`).join('');
+
+  const logsHTML = `<div class="card"><div class="card-header">Action History Log</div>
+    <div class="card-body" style="max-height:65vh;overflow-y:auto">${allLogsHTML}</div></div>`;
+
+  // TOPBAR
+  const topbarHTML = `<div class="topbar">
+    <div>
+      <div class="topbar-title">Pawar Family</div>
+      <div class="topbar-sub">Credit Dashboard</div>
+    </div>
+    <div class="topbar-actions">
+      ${isAdmin ? `<div class="desktop-tabs">
+        <button class="desktop-tab${S.tab==='dashboard'?' active':''}" onclick="S.tab='dashboard';render()">Dashboard</button>
+        <button class="desktop-tab${S.tab==='actions'?' active':''}" onclick="S.tab='actions';render()">Actions</button>
+        <button class="desktop-tab${S.tab==='logs'?' active':''}" onclick="S.tab='logs';render()">Logs</button>
+      </div>` : ''}
+      <span class="badge badge-role">${au.displayName}</span>
+      ${isAdmin ? `<button class="btn-sm btn-reset" onclick="resetAll()">Reset</button>` : ''}
+      <button class="btn-sm btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>`;
+
+  // BOTTOM NAV
+  const bottomNavHTML = isAdmin ? `<nav class="bottom-nav">
+    <button class="bottom-nav-item${S.tab==='dashboard'?' active':''}" onclick="S.tab='dashboard';render()">
+      <span class="bottom-nav-icon">🏠</span>Dashboard
+    </button>
+    <button class="bottom-nav-item${S.tab==='actions'?' active':''}" onclick="S.tab='actions';render()">
+      <span class="bottom-nav-icon">⚡</span>Actions
+    </button>
+    <button class="bottom-nav-item${S.tab==='logs'?' active':''}" onclick="S.tab='logs';render()">
+      <span class="bottom-nav-icon">📋</span>Logs
+    </button>
+  </nav>` : '';
+
+  // DASHBOARD CONTENT
+  let tabContent = '';
+  if (S.tab==='dashboard') {
+    const searchBar = isAdmin ? `
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input class="inp" placeholder="Search member or role..." value="${S.search}" oninput="S.search=this.value;render()">
+      </div>
+      <div class="filter-chips">
+        ${['all',...new Set(S.members.map(m=>m.category))].map(c=>`
+          <button class="chip${S.filterCat===c?' active':''}" onclick="S.filterCat='${c}';render()">${c==='all'?'All':c}</button>
+        `).join('')}
+      </div>` : '';
+
+    tabContent = `${statsHTML}${searchBar}
+    <div class="desktop-grid">
+      <div class="member-list">${memberCardsHTML}</div>
+      ${reportHTML}
+    </div>`;
+  } else if (S.tab==='actions') {
+    tabContent = actionsHTML;
+  } else if (S.tab==='logs') {
+    tabContent = logsHTML;
+  }
+
+  document.getElementById('app').innerHTML = `
+    ${topbarHTML}
+    <div class="page-content fade-in">${tabContent}</div>
+    ${bottomNavHTML}`;
+}
+
+function render() {
+  if (S.auth) renderApp(); else renderLogin();
+}
+
+render();
+</script>
+</body>
+</html>
